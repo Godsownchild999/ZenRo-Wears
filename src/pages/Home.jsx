@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import "./Home.css";
-import ZenRo from "../assets/Zenro.jpg"; 
-import WhiteTee from "../assets/White-Tee.png";
+import ZenRo from "../assets/zenro.jpg"; 
+import WhiteTee from "../assets/white-tee.png";
 import hoodie from "../assets/hoodie.png"
 import joggers from "../assets/joggers.png"
 
