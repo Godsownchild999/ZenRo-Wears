@@ -25,7 +25,7 @@ import Flannel from "../assets/flannel.png";
 import CargoPants from "../assets/cargo-pants.png";
 import BrownHoodie from "../assets/brown-hoodie.png";
 import BlackTee from "../assets/black-tee.png";
-import ZenClassicTee from "../assets/src/assets/zen-classic-tee.png";
+import ZenClassicTee from "../assets/zen-classic-tee.png";
 import Cap from "../assets/cap.png";
 import LeatherPremiumJacket from "../assets/leather-premium-Jacket.png";
 
