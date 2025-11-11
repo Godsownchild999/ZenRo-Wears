@@ -1,6 +1,6 @@
 import React from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import Aboutimg from "../assets/Zenro.jpg"
+import Aboutimg from "../assets/zenro.jpg"
 import './About.css';
 
 function About() {
