@@ -4,30 +4,30 @@ import "./Shop.css";
 import WhiteTee from "../assets/White-Tee.png";
 import hoodie from "../assets/hoodie.png";
 import joggers from "../assets/joggers.png";
-import Sleeveless from "../assets/Sleeveless.png"
-import VarsityJacket from "../assets/Varsity-Jacket.png"
-import Tracksuit from "../assets/Track-suit.png"
-import Sweaterblack from "../assets/Sweater-black.png"
-import streetwear from "../assets/streetwear.png"
-import RainProofJacket from "../assets/Rain-ProofJacket.png"
-import Puffervest from "../assets/Puffer-vest.png"
-import pufferjacket from "../assets/puffer-jacket.png"
-import PremiumTee from "../assets/Premium-Tee.png"
-import PremiumJacket from "../assets/Premium-Jacket.png"
-import overshirt from "../assets/overshirt.png"
-import OverShirtSlik from "../assets/Over-Shirt-Slik.png"
-import mattejacket from "../assets/matte-jacket.png"
-import LuxuryTrousers from "../assets/Luxury-Trousers.png"
-import KnitSweater from "../assets/Knit-Sweater.png"
-import kimonoJacket from "../assets/kimono-Jacket.png"
-import GraphicsTee from "../assets/Graphics-Tee.png"
-import Flannel from "../assets/Flannel.png"
-import CargoPants from "../assets/Cargo-Pants.png"
-import BrownHoodie from "../assets/BrownHoodie.png"
-import BlackTee from "../assets/Black-Tee.png"
-import ZenClassicTee from "../assets/Zen Classic Tee.png"
-import cap from "../assets/cap.png"
-import LeatherPremiumJacket from "../assets/Leather-Premium-Jacket.png"
+import Sleeveless from "../assets/Sleeveless.png";
+import VarsityJacket from "../assets/Varsity-Jacket.png";
+import Tracksuit from "../assets/Track-suit.png";
+import Sweaterblack from "../assets/Sweater-black.png";
+import streetwear from "../assets/streetwear.png";
+import RainProofJacket from "../assets/Rain-ProofJacket.png";
+import Puffervest from "../assets/Puffer-vest.png";
+import pufferjacket from "../assets/puffer-jacket.png";
+import PremiumTee from "../assets/Premium-Tee.png";
+import PremiumJacket from "../assets/Premium-Jacket.png";
+import overshirt from "../assets/overshirt.png";
+import OverShirtSlik from "../assets/Over-Shirt-Slik.png";
+import mattejacket from "../assets/matte-jacket.png";
+import LuxuryTrousers from "../assets/Luxury-Trousers.png";
+import KnitSweater from "../assets/Knit-Sweater.png";
+import kimonoJacket from "../assets/kimono-Jacket.png";
+import GraphicsTee from "../assets/Graphics-Tee.png";
+import Flannel from "../assets/Flannel.png";
+import CargoPants from "../assets/Cargo-Pants.png";
+import BrownHoodie from "../assets/BrownHoodie.png";
+import BlackTee from "../assets/Black-Tee.png";
+import ZenClassicTee from "../assets/Zen Classic Tee.png";
+import Cap from "../assets/Cap.png";
+import LeatherPremiumJacket from "../assets/Leather-Premium-Jacket.png";
 
 
 
@@ -238,7 +238,7 @@ const products = [
     id: 26,
     name: "ZenRo Cap",
     price: 21000,
-    image: cap,
+    image: Cap,
     description: "Complete your look — stylish headwear essential.",
     available: true,
   },
