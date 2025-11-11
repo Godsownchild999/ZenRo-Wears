@@ -1,0 +1,11 @@
+.status-text {
+  transition: 0.3s ease;
+}
+
+.status-text {
+  color: #222;
+}
+
+.status-text:has(span.spinner-border) {
+  color: #555;
+}

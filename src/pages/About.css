@@ -1,0 +1,18 @@
+.about-page {
+  font-family: 'Poppins', sans-serif;
+  color: #222;
+}
+
+.about-page img {
+  max-height: 450px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.about-page h2 {
+  letter-spacing: 0.5px;
+}
+
+.text-secondary {
+  line-height: 1.8;
+}

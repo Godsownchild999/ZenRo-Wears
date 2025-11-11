@@ -1,0 +1,13 @@
+footer a:hover {
+  text-decoration: underline;
+  color: #f8f9fa;
+  transition: 0.2s ease;
+}
+
+footer h2 {
+  letter-spacing: 1px;
+}
+
+footer p {
+  margin: 0;
+}

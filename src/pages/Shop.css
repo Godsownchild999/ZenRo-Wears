@@ -1,0 +1,73 @@
+/* 🛍 Shop Page Styles */
+.shop-page {
+  font-family: "Poppins", sans-serif;
+  background-color: #fff;
+  color: #111;
+}
+
+.shop-page h2 {
+  font-weight: 700;
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.shop-page p {
+  font-size: 1rem;
+  color: #666;
+}
+
+/* Product Cards */
+.card {
+  border: none;
+  border-radius: 10px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.card-img-top {
+  height: 300px;
+  object-fit: cover;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+
+.card-body {
+  padding: 20px;
+}
+
+.card-body h5 {
+  font-weight: 600;
+}
+
+.card-body p {
+  margin-bottom: 10px;
+}
+
+.btn {
+  border-radius: 25px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-dark {
+  background-color: #111;
+  border: none;
+}
+
+.btn-dark:hover {
+  background-color: #333;
+}
+
+.btn-outline-dark {
+  border-color: #111;
+  color: #111;
+}
+
+.btn-outline-dark:hover {
+  background-color: #111;
+  color: #fff;
+}
