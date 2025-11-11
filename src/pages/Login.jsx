@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom"; // import Link
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../Firebase";
 import "./Login.css";
@@ -17,7 +17,6 @@ function Login() {
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      // Remove localStorage - we'll use Firebase's built-in persistence
       navigate("/");
     } catch (err) {
       console.error("❌ Login error:", err.message);
@@ -59,6 +58,12 @@ function Login() {
         </div>
 
         <button type="submit">Login</button>
+
+        {/* 🔗 Redirect to Sign Up */}
+        <p className="login-footer">
+          Don’t have an account?{" "}
+          <Link to="/signup">Sign Up</Link>
+        </p>
       </form>
     </div>
   );
