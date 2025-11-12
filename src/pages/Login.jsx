@@ -50,7 +50,7 @@ function Login() {
           />
           <button
             type="button"
-            className="show-btn"
+            className="show-btn mb-3"
             onClick={() => setShowPwd(!showPwd)}
           >
             {showPwd ? "Hide" : "Show"}
