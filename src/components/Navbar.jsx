@@ -41,7 +41,10 @@ function Navbar({ cartCount, clearCart }) {
   return (
     <nav className="Navbar">
       <div className="logo">
+        <Link to='/'>
         <h2>ZenRo Wears</h2>
+        </Link>
+        
       </div>
 
       {/* 🍔 Hamburger */}
