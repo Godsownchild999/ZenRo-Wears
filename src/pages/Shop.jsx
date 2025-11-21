@@ -32,7 +32,7 @@ import BrownHoodie from "../assets/brown-hoodie.png";
 import BlackTee from "../assets/black-tee.png";
 import ZenClassicTee from "../assets/zen-classic-tee.png";
 import Cap from "../assets/cap.png";
-import LeatherPremiumJacket from "../assets/leather-premium-jacket.png";
+import leatherPremiumJacket from "../assets/leather-premium-jacket.png";
 
 const rawProducts = [
   {
@@ -296,11 +296,11 @@ const rawProducts = [
     status: "available",
   },
   {
-    id: 27,
-    name: "ZenRo Leather Premium Jacket",
+    id: "leather-premium-jacket",
+    name: "Leather Premium Jacket",
     price: 155000,
     category: "Jackets",
-    images: { front: LeatherPremiumJacket, back: LeatherPremiumJacket },
+    images: { front: leatherPremiumJacket, back: leatherPremiumJacket },
     sizes: ["M", "L", "XL"],
     description: "Luxury leather outerwear — premium finish, bold style.",
     status: "coming-soon",
