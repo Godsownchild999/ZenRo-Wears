@@ -12,6 +12,10 @@ function SignUp() {
   const [success, setSuccess] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [validationModal, setValidationModal] = useState({
+    open: false,
+    missing: [],
+  });
 
   const handleSignUp = async (e) => {
     e.preventDefault();
@@ -43,6 +47,14 @@ function SignUp() {
     }
   };
 
+  const handleChange = (event) => {
+    setForm((prev) => ({ ...prev, [event.target.name]: event.target.value }));
+    setError("");
+    if (validationModal.open) {
+      setValidationModal({ open: false, missing: [] });
+    }
+  };
+
   return (
     <div className="signup-page page-fade-in">
       <div className="signup-card">
@@ -50,8 +62,10 @@ function SignUp() {
         <p className="signup-subtitle">Join the community and stay ahead on every drop.</p>
         {error && <div className="signup-alert">{error}</div>}
         <form className="signup-form" onSubmit={handleSignUp}>
-          <label>
-            Display name
+          <label className="field-label">
+            <span className="label-title">
+              Display name <span className="required-indicator">*</span>
+            </span>
             <input
               name="displayName"
               placeholder="Zen Master"
@@ -60,8 +74,10 @@ function SignUp() {
               autoComplete="name"
             />
           </label>
-          <label>
-            Email address
+          <label className="field-label">
+            <span className="label-title">
+              Email address <span className="required-indicator">*</span>
+            </span>
             <input
               type="email"
               name="email"
@@ -71,8 +87,10 @@ function SignUp() {
               autoComplete="email"
             />
           </label>
-          <label>
-            Password
+          <label className="field-label">
+            <span className="label-title">
+              Password <span className="required-indicator">*</span>
+            </span>
             <div className="input-with-toggle">
               <input
                 type={showPassword ? "text" : "password"}
@@ -93,8 +111,10 @@ function SignUp() {
             </div>
           </label>
 
-          <label>
-            Confirm password
+          <label className="field-label">
+            <span className="label-title">
+              Confirm password <span className="required-indicator">*</span>
+            </span>
             <div className="input-with-toggle">
               <input
                 type={showConfirm ? "text" : "password"}
@@ -121,6 +141,27 @@ function SignUp() {
           Already have an account? <a href="/login">Sign in</a>
         </p>
       </div>
+
+      {validationModal.open && (
+        <div className="form-modal-backdrop" role="alertdialog" aria-modal="true">
+          <div className="form-modal">
+            <h2>Action required</h2>
+            <p>Please fill the fields below:</p>
+            <ul className="form-modal-list">
+              {validationModal.missing.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+            <button
+              type="button"
+              className="form-modal-btn"
+              onClick={() => setValidationModal({ open: false, missing: [] })}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -10,6 +10,10 @@ function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [validationModal, setValidationModal] = useState({
+    open: false,
+    missing: [],
+  });
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
@@ -28,6 +32,28 @@ function Login() {
     }
   };
 
+  const handleChange = (event) => {
+    setForm((prev) => ({ ...prev, [event.target.name]: event.target.value }));
+    setError("");
+    if (validationModal.open) {
+      setValidationModal({ open: false, missing: [] });
+    }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const missing = [];
+    if (!form.email.trim()) missing.push("Email address");
+    if (!form.password.trim()) missing.push("Password");
+
+    if (missing.length) {
+      setValidationModal({ open: true, missing });
+      return;
+    }
+
+    // ...existing login logic
+  };
+
   return (
     <div className="login-page page-fade-in">
       <div className="login-card">
@@ -35,8 +61,10 @@ function Login() {
         <p className="login-subtitle">Sign in to keep styling with ZenRo.</p>
         {error && <div className="login-alert">{error}</div>}
         <form className="login-form" onSubmit={handleLogin}>
-          <label>
-            Email address
+          <label className="field-label">
+            <span className="label-title">
+              Email address <span className="required-indicator">*</span>
+            </span>
             <input
               type="email"
               name="email"
@@ -47,8 +75,10 @@ function Login() {
               required
             />
           </label>
-          <label>
-            Password
+          <label className="field-label">
+            <span className="label-title">
+              Password <span className="required-indicator">*</span>
+            </span>
             <div className="input-with-toggle">
               <input
                 type={showPassword ? "text" : "password"}
@@ -91,6 +121,27 @@ function Login() {
           New to ZenRo? <Link to="/signup">Create an account</Link>
         </p>
       </div>
+
+      {validationModal.open && (
+        <div className="form-modal-backdrop" role="alertdialog" aria-modal="true">
+          <div className="form-modal">
+            <h2>Missing information</h2>
+            <p>Please fill the fields below:</p>
+            <ul className="form-modal-list">
+              {validationModal.missing.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+            <button
+              type="button"
+              className="form-modal-btn"
+              onClick={() => setValidationModal({ open: false, missing: [] })}
+            >
+              Review form
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
