@@ -9,3 +9,128 @@
 .status-text:has(span.spinner-border) {
   color: #555;
 }
+
+.contact-page {
+  padding-bottom: 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.contact-hero {
+  padding: 70px 16px 40px;
+  text-align: center;
+  background: linear-gradient(120deg, #f5f6fb 0%, #dae0ff 100%);
+}
+
+.contact-hero h1 {
+  font-size: clamp(2.2rem, 5vw, 3rem);
+  margin-bottom: 14px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.contact-hero p {
+  margin: 0 auto;
+  max-width: 520px;
+  color: #4a4f5f;
+}
+
+.contact-layout {
+  display: grid;
+  gap: 32px;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+}
+
+.contact-form,
+.contact-info {
+  background: #fff;
+  border-radius: 22px;
+  box-shadow: 0 22px 50px rgba(15, 17, 21, 0.08);
+  padding: 32px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.contact-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-weight: 600;
+  color: #2f3240;
+}
+
+.contact-form input,
+.contact-form textarea,
+.contact-form select {
+  border: 2px solid #e1e4ee;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 1rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.contact-form input:focus,
+.contact-form textarea:focus,
+.contact-form select:focus {
+  border-color: #111;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(17, 17, 17, 0.12);
+}
+
+.contact-form textarea {
+  resize: vertical;
+}
+
+.contact-btn {
+  margin-top: 4px;
+  align-self: flex-start;
+  padding: 14px 32px;
+  border: none;
+  border-radius: 999px;
+  background: #111;
+  color: #fff;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.contact-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 32px rgba(17, 17, 17, 0.18);
+}
+
+.contact-info h2 {
+  margin: 0 0 6px;
+  font-size: 1.1rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #111;
+}
+
+.contact-info p,
+.contact-info a {
+  margin: 0;
+  color: #4b4f5d;
+  line-height: 1.6;
+  text-decoration: none;
+}
+
+.contact-socials {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.contact-socials a:hover {
+  color: #111;
+}
+
+@media (max-width: 900px) {
+  .contact-layout {
+    grid-template-columns: 1fr;
+  }
+}

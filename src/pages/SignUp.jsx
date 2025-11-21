@@ -10,6 +10,8 @@ function SignUp() {
   const [confirmPwd, setConfirmPwd] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const handleSignUp = async (e) => {
     e.preventDefault();
@@ -42,52 +44,83 @@ function SignUp() {
   };
 
   return (
-    <div className="signup-wrapper">
-      <form className="signup-box" onSubmit={handleSignUp}>
-        <h1 className="signup-title">Create Account</h1>
-        <p className="signup-sub">Join ZenRo Wears</p>
+    <div className="signup-page page-fade-in">
+      <div className="signup-card">
+        <h1>Create your ZenRo account</h1>
+        <p className="signup-subtitle">Join the community and stay ahead on every drop.</p>
+        {error && <div className="signup-alert">{error}</div>}
+        <form className="signup-form" onSubmit={handleSignUp}>
+          <label>
+            Display name
+            <input
+              name="displayName"
+              placeholder="Zen Master"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              autoComplete="name"
+            />
+          </label>
+          <label>
+            Email address
+            <input
+              type="email"
+              name="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+            />
+          </label>
+          <label>
+            Password
+            <div className="input-with-toggle">
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
+              />
+              <button
+                type="button"
+                className="toggle-visibility"
+                onClick={() => setShowPassword((prev) => !prev)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? "Hide" : "Show"}
+              </button>
+            </div>
+          </label>
 
-        {error && <p className="signup-error">{error}</p>}
-        {success && <p className="signup-success">{success}</p>}
-
-        <input
-          type="text"
-          placeholder="Full Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-        />
-
-        <input
-          type="email"
-          placeholder="Email Address"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-
-        <input
-          type="password"
-          placeholder="Confirm Password"
-          value={confirmPwd}
-          onChange={(e) => setConfirmPwd(e.target.value)}
-          required
-        />
-
-        <button type="submit">Sign Up</button>
-
-        <p className="switch-text">
-          Already have an account? <a href="/login">Log In</a>
+          <label>
+            Confirm password
+            <div className="input-with-toggle">
+              <input
+                type={showConfirm ? "text" : "password"}
+                name="confirmPassword"
+                placeholder="Repeat password"
+                value={confirmPwd}
+                onChange={(e) => setConfirmPwd(e.target.value)}
+              />
+              <button
+                type="button"
+                className="toggle-visibility"
+                onClick={() => setShowConfirm((prev) => !prev)}
+                aria-label={showConfirm ? "Hide password" : "Show password"}
+              >
+                {showConfirm ? "Hide" : "Show"}
+              </button>
+            </div>
+          </label>
+          <button className="signup-btn" type="submit">
+            Sign up
+          </button>
+        </form>
+        <p className="signup-switch">
+          Already have an account? <a href="/login">Sign in</a>
         </p>
-      </form>
+      </div>
     </div>
   );
 }

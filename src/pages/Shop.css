@@ -1,8 +1,25 @@
 /* 🛍 Shop Page Styles */
 .shop-page {
   font-family: "Poppins", sans-serif;
-  background-color: #fff;
+  background: #f8f9fa;
+  min-height: 100vh;
+  padding-top: 2rem;
   color: #111;
+}
+
+.shop-header {
+  margin-bottom: 3rem;
+}
+
+.shop-header h2 {
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+
+.shop-header p {
+  font-size: 1.1rem;
+  max-width: 600px;
+  margin: 0 auto;
 }
 
 .shop-page h2 {
@@ -14,6 +31,59 @@
 .shop-page p {
   font-size: 1rem;
   color: #666;
+}
+
+/* Filters */
+.shop-filters {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.search-bar {
+  position: relative;
+  flex: 1;
+  min-width: 250px;
+  max-width: 400px;
+}
+
+.search-bar i {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #999;
+}
+
+.search-bar input {
+  width: 100%;
+  padding: 12px 12px 12px 45px;
+  border: 2px solid #ddd;
+  border-radius: 25px;
+  font-size: 1rem;
+  transition: border-color 0.3s;
+}
+
+.search-bar input:focus {
+  outline: none;
+  border-color: #000;
+}
+
+.filter-select {
+  padding: 12px 20px;
+  border: 2px solid #ddd;
+  border-radius: 25px;
+  background: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: border-color 0.3s;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: #000;
 }
 
 /* Product Cards */
@@ -70,4 +140,67 @@
 .btn-outline-dark:hover {
   background-color: #111;
   color: #fff;
+}
+
+/* Products Grid */
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 2rem;
+}
+
+.no-results {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 4rem 2rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.no-results i {
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.no-results p {
+  font-size: 1.2rem;
+  color: #666;
+  margin: 1.5rem 0;
+}
+
+/* Animations */
+.page-fade-in {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .shop-filters {
+    flex-direction: column;
+  }
+
+  .search-bar {
+    max-width: 100%;
+  }
+
+  .products-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1rem;
+  }
+
+  .shop-header h2 {
+    font-size: 2rem;
+  }
 }

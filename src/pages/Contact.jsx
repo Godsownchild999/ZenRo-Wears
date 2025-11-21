@@ -35,80 +35,87 @@ function Contact() {
   };
 
   return (
-    <section className="contact-page py-5">
-      <div className="container">
-        <div className="text-center mb-5" data-aos="fade-up">
-          <h2 className="fw-bold">Contact ZenRo Wears</h2>
-          <p className="text-muted">
-            We’d love to hear from you — whether it’s inquiries, collaborations, or feedback.
-          </p>
-        </div>
+    <div className="contact-page page-fade-in">
+      <section className="contact-hero">
+        <h1>Let’s build together</h1>
+        <p>Have questions, collab ideas, or wholesale inquiries? Drop us a line.</p>
+      </section>
 
-        <div className="row g-4 align-items-center">
-          {/* Contact Form */}
-          <div className="col-md-6" data-aos="fade-right">
-            <form ref={form} onSubmit={sendEmail} className="p-4 shadow rounded bg-white">
-              <div className="mb-3">
-                <label className="form-label fw-semibold">Full Name</label>
-                <input type="text" name="name" className="form-control" placeholder="Enter your name" required />
-              </div>
-              <div className="mb-3">
-                <label className="form-label fw-semibold">Email Address</label>
-                <input type="email" name="email" className="form-control" placeholder="you@example.com" required />
-              </div>
-              <div className="mb-3">
-                <label className="form-label fw-semibold">Message</label>
-                <textarea
-                  name="message"
-                  className="form-control"
-                  rows="4"
-                  placeholder="Type your message..."
-                  required
-                ></textarea>
-              </div>
+      <div className="contact-layout container">
+        <form
+          ref={form}
+          onSubmit={sendEmail}
+          className="contact-form p-4 shadow rounded bg-white"
+        >
+          <label>
+            Full name
+            <input type="text" name="name" placeholder="Your name" required />
+          </label>
+          <label>
+            Email address
+            <input type="email" name="email" placeholder="you@example.com" required />
+          </label>
+          <label>
+            Topic
+            <select name="topic" defaultValue="support">
+              <option value="support">Order support</option>
+              <option value="collab">Collaboration</option>
+              <option value="stockist">Wholesale / Stockist</option>
+              <option value="press">Press / Media</option>
+            </select>
+          </label>
+          <label>
+            Message
+            <textarea name="message" rows="5" placeholder="Write your message..." required></textarea>
+          </label>
+          {/* Loading Spinner or Button */}
+          <button
+            type="submit"
+            className="btn btn-dark rounded-pill px-4 d-flex align-items-center justify-content-center contact-btn"
+            disabled={isSending}
+          >
+            {isSending ? (
+              <>
+                <span className="spinner-border spinner-border-sm me-2"></span>
+                Sending...
+              </>
+            ) : (
+              "Send message"
+            )}
+          </button>
 
-              {/* Loading Spinner or Button */}
-              <button
-                type="submit"
-                className="btn btn-dark rounded-pill px-4 d-flex align-items-center justify-content-center"
-                disabled={isSending}
-              >
-                {isSending ? (
-                  <>
-                    <span className="spinner-border spinner-border-sm me-2"></span>
-                    Sending...
-                  </>
-                ) : (
-                  "Send Message"
-                )}
-              </button>
+          {/* Status Message */}
+          {statusMessage && (
+            <p className="mt-3 fw-semibold text-center status-text">
+              {statusMessage}
+            </p>
+          )}
+        </form>
 
-              {/* Status Message */}
-              {statusMessage && (
-                <p className="mt-3 fw-semibold text-center status-text">
-                  {statusMessage}
-                </p>
-              )}
-            </form>
+        <aside className="contact-info">
+          <div>
+            <h2>Reach us</h2>
+            <p>hello@zenrowears.com</p>
+            <p>+234 800 000 0000</p>
           </div>
-
-          {/* Contact Info */}
-          <div className="col-md-6" data-aos="fade-left">
-            <div className="p-4">
-              <h5 className="fw-bold mb-3">Get in Touch</h5>
-              <p><strong>Email:</strong> support@zenrowears.com</p>
-              <p><strong>Phone:</strong> +234 904 459 2275</p>
-              <p><strong>Instagram:</strong> @zenrowears</p>
-              <p><strong>Location:</strong> Lagos, Nigeria</p>
-              <p className="text-muted mt-3">
-                Our team typically replies within 24–48 hours.  
-                We value every message you send.
-              </p>
-            </div>
+          <div>
+            <h2>Visit</h2>
+            <p>ZenRo Studio<br />Lekki Phase 1, Lagos</p>
           </div>
-        </div>
+          <div>
+            <h2>Hours</h2>
+            <p>Mon – Sat: 9am – 6pm</p>
+            <p>Sun: Closed</p>
+          </div>
+          <div className="contact-socials">
+            <h2>Social</h2>
+            <a href="https://instagram.com" aria-label="Instagram">@ZenRoWears</a>
+            <a href="https://twitter.com" aria-label="Twitter">Twitter</a>
+            <a href="https://tiktok.com" aria-label="TikTok">TikTok</a>
+          </div>
+        </aside>
       </div>
-    </section>
+    </div>
   );
 }
 

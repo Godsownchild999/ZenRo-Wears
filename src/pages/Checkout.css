@@ -4,6 +4,7 @@
   padding: 60px 20px;
   text-align: center;
   min-height: 100vh;
+  max-width: 1140px;
 }
 
 .checkout-page h2 {
@@ -12,14 +13,31 @@
   color: #111;
 }
 
+.checkout-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+  gap: 32px;
+}
+
 .checkout-form {
   max-width: 500px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
   background: #fff;
-  padding: 40px;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  padding: 28px;
+  border-radius: 18px;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.08);
   text-align: left;
+}
+
+.checkout-form h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .form-group {
@@ -33,18 +51,20 @@
   color: #333;
 }
 
-.form-group input {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
+.form-group input,
+.checkout-form textarea {
+  border: 2px solid #e3e5eb;
+  border-radius: 12px;
+  padding: 12px 16px;
   font-size: 1rem;
-  transition: border-color 0.3s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.form-group input:focus {
+.form-group input:focus,
+.checkout-form textarea:focus {
   outline: none;
-  border-color: #d4af37;
+  border-color: #111;
+  box-shadow: 0 0 0 3px rgba(17, 17, 17, 0.18);
 }
 
 .form-row {
@@ -68,6 +88,178 @@
 .checkout-btn:hover {
   background: linear-gradient(135deg, #b89727, #f8e58b);
   transform: scale(1.02);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.9rem;
+  color: #444;
+}
+
+.checkout-form textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.error-text {
+  color: #e74c3c;
+  font-size: 0.75rem;
+}
+
+.payment-options {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 14px;
+  background: #f6f7fb;
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.radio-option input {
+  width: 18px;
+  height: 18px;
+}
+
+.place-order-btn {
+  align-self: flex-start;
+  padding: 14px 32px;
+  border: none;
+  border-radius: 999px;
+  background: #111;
+  color: #fff;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.place-order-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
+}
+
+.place-order-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.order-summary {
+  background: #0f1115;
+  color: #fff;
+  border-radius: 20px;
+  padding: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  position: sticky;
+  top: 100px;
+  height: fit-content;
+}
+
+.order-summary h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  letter-spacing: 0.05em;
+}
+
+.summary-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-height: 320px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.summary-item {
+  display: grid;
+  grid-template-columns: 60px 1fr auto;
+  gap: 14px;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.07);
+  padding: 12px;
+  border-radius: 14px;
+}
+
+.summary-item img {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.summary-item p {
+  margin: 0;
+  font-weight: 600;
+}
+
+.summary-item small {
+  color: #d1d1d1;
+}
+
+.summary-totals {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  padding-top: 16px;
+}
+
+.summary-totals > div {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.95rem;
+}
+
+.summary-grand {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.disclaimer {
+  margin: 0;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+@media (max-width: 960px) {
+  .checkout-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .order-summary {
+    position: static;
+  }
+}
+
+@media (max-width: 600px) {
+  .checkout-form {
+    padding: 20px;
+  }
+
+  .summary-item {
+    grid-template-columns: 50px 1fr auto;
+  }
 }
 
 /* 🔥 ZenRo Styled Popup */

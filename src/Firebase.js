@@ -11,20 +11,17 @@ const firebaseConfig = {
   apiKey: "AIzaSyAKhxn4it0OJ0ufUrKnnTrPmKAhwAd9wSs",
   authDomain: "zenro-wears.firebaseapp.com",
   projectId: "zenro-wears",
-  storageBucket: "zenro-wears.appspot.com", // ✅ fixed typo
+  storageBucket: "zenro-wears.appspot.com",
   messagingSenderId: "568558456468",
   appId: "1:568558456468:web:af1944fc1c9163fae7ee81",
   measurementId: "G-0Q4WL163J7",
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Auth setup
-const auth = getAuth(app);
-setPersistence(auth, browserLocalPersistence);
+export const auth = getAuth(app);
+setPersistence(auth, browserLocalPersistence).catch((error) => {
+  console.error("Failed to set auth persistence:", error);
+});
 
-// Firestore setup
-const db = getFirestore(app);
-
-export { auth, db };
+export const db = getFirestore(app);
