@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
 import { signOut } from "firebase/auth";
+import { FaShoppingCart, FaTools, FaHome, FaStore, FaWhatsapp, FaInfoCircle, FaUserCircle, FaChevronDown, FaBoxOpen, FaSignOutAlt, FaSignInAlt } from "react-icons/fa";
 
 import { auth } from "../Firebase";
 import "./styles/Navbar.css";
@@ -73,40 +74,44 @@ function Navbar({ cartCount, syncing, user, clearCart }) {
         <ul>
           <li>
             <NavLink to="/" onClick={closeMobileMenu}>
-              <i className="fas fa-home icon" aria-hidden="true"></i>
+              <FaHome aria-hidden="true" />
               <span className="nav-text">Home</span>
             </NavLink>
           </li>
           <li>
             <NavLink to="/shop" onClick={closeMobileMenu}>
-              <i className="fas fa-shopping-bag icon" aria-hidden="true"></i>
+              <FaStore aria-hidden="true" />
               <span className="nav-text">Shop</span>
             </NavLink>
           </li>
           <li>
-            <NavLink to="/about" onClick={closeMobileMenu}>
-              <i className="fas fa-users icon" aria-hidden="true"></i>
-              <span className="nav-text">About</span>
-            </NavLink>
-          </li>
-          <li>
             <NavLink to="/contact" onClick={closeMobileMenu}>
-              <i className="fas fa-envelope icon" aria-hidden="true"></i>
+              <FaWhatsapp aria-hidden="true" />
               <span className="nav-text">Contact</span>
             </NavLink>
           </li>
           <li>
-            <NavLink to="/myorders" onClick={closeMobileMenu}>
-              <i className="fas fa-receipt icon" aria-hidden="true"></i>
-              <span className="nav-text">Orders</span>
-            </NavLink>
-          </li>
-          <li>
             <NavLink to="/cart" className="cart-link" onClick={closeMobileMenu}>
-              <i className="fas fa-shopping-cart icon" aria-hidden="true"></i>
+              <FaShoppingCart aria-hidden="true" />
               <span className="nav-text">Cart</span>
               {cartCount > 0 && <span className="cart-count">{cartCount}</span>}
               {syncing && <span className="sr-only">Syncing cart</span>}
+            </NavLink>
+          </li>
+
+          {user?.isAdmin && (
+            <li>
+              <NavLink to="/admin" onClick={closeMobileMenu}>
+                <FaTools aria-hidden="true" />
+                <span className="nav-text">Admin</span>
+              </NavLink>
+            </li>
+          )}
+
+          <li>
+            <NavLink to="/about" onClick={closeMobileMenu}>
+              <FaInfoCircle aria-hidden="true" />
+              <span className="nav-text">About</span>
             </NavLink>
           </li>
 
@@ -119,12 +124,14 @@ function Navbar({ cartCount, syncing, user, clearCart }) {
                 aria-expanded={dropdownOpen}
                 aria-haspopup="true"
               >
-                <i className="fas fa-user-circle icon" aria-hidden="true"></i>
-                <span>{user.displayName || user.email?.split("@")[0] || "Account"}</span>
-                <i
-                  className={`fas fa-chevron-down caret ${dropdownOpen ? "open" : ""}`}
-                  aria-hidden="true"
-                ></i>
+                <FaUserCircle className="icon" aria-hidden="true" />
+                <span>
+                  {user.displayName ||
+                    user.name ||
+                    user.email?.split("@")[0] ||
+                    "Account"}
+                </span>
+                <FaChevronDown className={`caret ${dropdownOpen ? "open" : ""}`} aria-hidden="true" />
               </button>
 
               {dropdownOpen && (
@@ -134,13 +141,13 @@ function Navbar({ cartCount, syncing, user, clearCart }) {
                       to="/myorders"
                       onClick={closeMobileMenu}
                     >
-                      <i className="fas fa-box icon" aria-hidden="true"></i>
+                      <FaBoxOpen className="icon" aria-hidden="true" />
                       Track orders
                     </NavLink>
                   </li>
                   <li>
                     <button type="button" className="logout-btn" onClick={handleLogout}>
-                      <i className="fas fa-sign-out-alt icon" aria-hidden="true"></i>
+                      <FaSignOutAlt className="icon" aria-hidden="true" />
                       Logout
                     </button>
                   </li>
@@ -150,7 +157,7 @@ function Navbar({ cartCount, syncing, user, clearCart }) {
           ) : (
             <li>
               <NavLink to="/login" onClick={closeMobileMenu}>
-                <i className="fas fa-sign-in-alt icon" aria-hidden="true"></i>
+                <FaSignInAlt className="icon" aria-hidden="true" />
                 <span className="nav-text">Login</span>
               </NavLink>
             </li>

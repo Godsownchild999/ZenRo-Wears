@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import ProductCard from "../components/ProductCard";
 import ProductQuickView from "../components/ProductQuickView";
 import ProductSkeleton from "../components/ProductSkeleton";
@@ -20,7 +20,7 @@ import PufferJacket from "../assets/puffer-jacket.png";
 import PremiumTee from "../assets/premium-tee.png";
 import PremiumJacket from "../assets/premium-jacket.png";
 import OverShirt from "../assets/overshirt.png";
-import OverShirtSilk from "../assets/over-shirt-slik.png";
+import OverShirtSilk from "../assets/over-shirt-silk.png";
 import MatteJacket from "../assets/matte-jacket.png";
 import LuxuryTrousers from "../assets/luxury-trousers.png";
 import KnitSweater from "../assets/knit-sweater.png";
@@ -333,12 +333,17 @@ function Shop({ addToCart }) {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [toast, setToast] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [visibleCount, setVisibleCount] = useState(9);
 
   // mimic async fetching
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 700);
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    setVisibleCount(9);
+  }, [selectedCategory, priceRange, searchQuery]);
 
   const filteredProducts = useMemo(() => {
     const activeRange = priceRanges.find((range) => range.label === priceRange) || priceRanges[0];
@@ -353,6 +358,9 @@ function Shop({ addToCart }) {
       return matchesSearch && matchesCategory && matchesPrice;
     });
   }, [searchQuery, selectedCategory, priceRange]);
+
+  const displayedProducts = filteredProducts.slice(0, visibleCount);
+  const hasMore = visibleCount < filteredProducts.length;
 
   const handleProductSelect = (product) => {
     if (product.status === "available") {
@@ -382,6 +390,10 @@ function Shop({ addToCart }) {
     });
   };
 
+  const handleLoadMore = () => {
+    setVisibleCount((prev) => prev + 6);
+  };
+
   useEffect(() => {
     const onKeyDown = (event) => {
       if (event.key === "Escape") {
@@ -399,6 +411,14 @@ function Shop({ addToCart }) {
     };
   }, [selectedProduct]);
 
+  const handleCategorySelect = (category) => {
+    setSelectedCategory(category);
+  };
+
+  const handlePriceSelect = (rangeLabel) => {
+    setPriceRange(rangeLabel);
+  };
+
   return (
     <div className="shop-page page-fade-in">
       <div className="container py-5">
@@ -408,43 +428,57 @@ function Shop({ addToCart }) {
             Discover pieces that speak the language of balance, thought, and style.
           </p>
 
-          <div className="shop-filters">
-            <div className="search-bar">
-              <i className="fas fa-search" aria-hidden="true"></i>
-              <input
-                type="search"
-                aria-label="Search products"
-                placeholder="Search products..."
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
-              />
+          <div className="filter-card">
+            <div className="filter-row">
+              <div className="search-bar">
+                <i className="fas fa-search" aria-hidden="true"></i>
+                <input
+                  type="search"
+                  aria-label="Search products"
+                  placeholder="Search products..."
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                />
+              </div>
             </div>
 
-            <select
-              value={selectedCategory}
-              onChange={(event) => setSelectedCategory(event.target.value)}
-              className="filter-select"
-              aria-label="Filter by category"
-            >
-              {categories.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
-            </select>
+            <div className="filter-group">
+              <span className="filter-label">Categories</span>
+              <div className="filter-chips">
+                {categories.map((category) => (
+                  <button
+                    key={category}
+                    type="button"
+                    className={`filter-chip ${
+                      selectedCategory === category ? "active" : ""
+                    }`}
+                    onClick={() => handleCategorySelect(category)}
+                    aria-pressed={selectedCategory === category}
+                  >
+                    {category}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-            <select
-              value={priceRange}
-              onChange={(event) => setPriceRange(event.target.value)}
-              className="filter-select"
-              aria-label="Filter by price range"
-            >
-              {priceRanges.map((range) => (
-                <option key={range.label} value={range.label}>
-                  {range.label}
-                </option>
-              ))}
-            </select>
+            <div className="filter-group">
+              <span className="filter-label">Price range</span>
+              <div className="filter-chips">
+                {priceRanges.map((range) => (
+                  <button
+                    key={range.label}
+                    type="button"
+                    className={`filter-chip ${
+                      priceRange === range.label ? "active" : ""
+                    }`}
+                    onClick={() => handlePriceSelect(range.label)}
+                    aria-pressed={priceRange === range.label}
+                  >
+                    {range.label}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </header>
 
@@ -453,8 +487,8 @@ function Shop({ addToCart }) {
             ? Array.from({ length: 8 }, (_, index) => (
                 <ProductSkeleton key={index} />
               ))
-            : filteredProducts.length > 0
-            ? filteredProducts.map((product) => (
+            : displayedProducts.length > 0
+            ? displayedProducts.map((product) => (
                 <ProductCard
                   key={product.id}
                   product={product}
@@ -477,6 +511,18 @@ function Shop({ addToCart }) {
                 </button>
               </div>
             )}
+
+          {hasMore && (
+            <div className="text-center mt-4">
+              <button
+                type="button"
+                className="btn btn-outline-dark load-more"
+                onClick={handleLoadMore}
+              >
+                Load more
+              </button>
+            </div>
+          )}
         </section>
       </div>
 

@@ -82,6 +82,81 @@
   text-align: center;
 }
 
+.admin-toast {
+  position: fixed;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  background: #0f0f0f;
+  color: #fff;
+  padding: 0.85rem 1.25rem;
+  border-radius: 0.8rem;
+  box-shadow: 0 18px 35px rgba(15, 15, 15, 0.25);
+  font-weight: 600;
+  z-index: 1500;
+}
+
+.admin-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 15, 15, 0.45);
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+  z-index: 1400;
+}
+
+.admin-modal__panel {
+  width: min(420px, 100%);
+  background: #fff;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  display: grid;
+  gap: 1rem;
+  box-shadow: 0 30px 60px rgba(15, 15, 15, 0.2);
+}
+
+.admin-modal__panel header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.admin-modal__close {
+  border: none;
+  background: transparent;
+  font-size: 1.75rem;
+  line-height: 1;
+  cursor: pointer;
+  color: rgba(15, 15, 15, 0.6);
+}
+
+.admin-modal__panel label {
+  display: grid;
+  gap: 0.4rem;
+  font-weight: 600;
+  color: rgba(15, 15, 15, 0.8);
+}
+
+.admin-modal__panel input,
+.admin-modal__panel textarea {
+  border: 1px solid rgba(15, 15, 15, 0.2);
+  border-radius: 0.65rem;
+  padding: 0.65rem 0.9rem;
+  font-size: 0.95rem;
+  transition: border 0.2s ease, box-shadow 0.2s ease;
+}
+
+.admin-modal__panel input:focus,
+.admin-modal__panel textarea:focus {
+  border-color: #0f0f0f;
+  box-shadow: 0 0 0 3px rgba(15, 15, 15, 0.15);
+  outline: none;
+}
+
+.admin-modal__panel footer {
+  justify-self: flex-end;
+}
+
 @media (max-width: 960px) {
   .admin-page {
     grid-template-columns: 1fr;

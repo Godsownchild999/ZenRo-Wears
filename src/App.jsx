@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState, useCallback } from "react";
-import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 
@@ -9,6 +9,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import LoadingSpinner from "./components/LoadingSpinner";
 import ErrorBoundary from "./components/ErrorBoundary";
+import WhatsappFab from "./pages/WhatsappFab";
 
 import Home from "./pages/Home";
 import Shop from "./pages/Shop";
@@ -25,13 +26,28 @@ import NotFound from "./pages/NotFound";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminRoute from "./pages/AdminRoute";
 
+const ADMIN_EMAILS = (import.meta.env.VITE_ADMIN_EMAILS ?? "")
+  .split(",")
+  .map((email) => email.trim().toLowerCase())
+  .filter(Boolean);
+
 function App() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [cart, setCart] = useState([]);
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    const raw = localStorage.getItem("zenro:user");
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  });
   const [initialising, setInitialising] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [loadError, setLoadError] = useState(null);
+  const [cartAnnouncement, setCartAnnouncement] = useState("");
 
   // Derive cart count cheaply
   const cartCount = useMemo(
@@ -41,24 +57,41 @@ function App() {
 
   // --- AUTH & CART HYDRATION ---
   useEffect(() => {
+    setInitialising(true);
+
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
-      setLoadError(null);
-
-      if (!currentUser) {
-        setCart([]);
-        setInitialising(false);
-        return;
-      }
-
       try {
-        const cartRef = doc(db, "carts", currentUser.uid);
-        const snapshot = await getDoc(cartRef);
-        const firestoreCart = snapshot.exists() ? snapshot.data().items || [] : [];
-        setCart(firestoreCart);
-      } catch (error) {
-        console.error("Failed to fetch cart:", error);
-        setLoadError("We couldn't load your cart. Try refreshing.");
+        if (!currentUser) {
+          setUser(null);
+          setCart([]);
+          return;
+        }
+
+        const isAdmin = ADMIN_EMAILS.includes(currentUser.email?.toLowerCase() ?? "");
+        const nextUser = {
+          id: currentUser.uid,
+          name: currentUser.displayName ?? "ZenRo customer",
+          displayName: currentUser.displayName ?? "",
+          email: currentUser.email ?? "",
+          isAdmin,
+        };
+
+        setUser(nextUser);
+
+        try {
+          const snapshot = await getDoc(doc(db, "carts", currentUser.uid));
+          const remoteItems = snapshot.data()?.items;
+          if (Array.isArray(remoteItems)) {
+            setCart(remoteItems);
+          }
+        } catch (cartError) {
+          console.warn("Failed to hydrate cart from Firestore:", cartError);
+          setLoadError("Could not load your saved cart. Showing local items instead.");
+        }
+      } catch (authError) {
+        console.error("Auth initialisation failed:", authError);
+        setLoadError("We had trouble signing you in. Please refresh.");
+        setUser(null);
         setCart([]);
       } finally {
         setInitialising(false);
@@ -75,7 +108,7 @@ function App() {
     setSyncing(true);
     const timeout = setTimeout(async () => {
       try {
-        const cartRef = doc(db, "carts", user.uid);
+        const cartRef = doc(db, "carts", user.id);
         await setDoc(
           cartRef,
           { items: cart.map((item) => ({ ...item, price: Number(item.price) || 0 })) },
@@ -118,6 +151,10 @@ function App() {
 
         return [...prev, { ...product, quantity }];
       });
+
+      setCartAnnouncement(
+        `${product.name} added to cart. Quantity: ${quantity + (existing?.quantity ?? 0)}`
+      );
     },
     [navigate, user]
   );
@@ -139,11 +176,55 @@ function App() {
     setCart([]);
     if (!user) return;
     try {
-      await setDoc(doc(db, "carts", user.uid), { items: [] }, { merge: true });
+      await setDoc(doc(db, "carts", user.id), { items: [] }, { merge: true });
     } catch (error) {
       console.error("Failed to clear cart:", error);
     }
   }, [user]);
+
+  const hideWhatsappFab = ["/checkout", "/order-success", "/admin"].includes(
+    location.pathname
+  );
+
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem("zenro:user", JSON.stringify(user));
+    } else {
+      localStorage.removeItem("zenro:user");
+    }
+  }, [user]);
+
+  const storageKey = useMemo(
+    () => (user?.id ? `zenro:cart:${user.id}` : "zenro:cart:guest"),
+    [user]
+  );
+
+  useEffect(() => {
+    const raw = localStorage.getItem(storageKey);
+    if (!raw) return;
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        setCart(parsed);
+      }
+    } catch {
+      // ignore bad payloads
+    }
+  }, [storageKey]);
+
+  useEffect(() => {
+    localStorage.setItem(storageKey, JSON.stringify(cart));
+  }, [cart, storageKey]);
+
+  const AdminGuard = useCallback(
+    ({ children }) => {
+      if (!user?.isAdmin) {
+        return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+      }
+      return children;
+    },
+    [user?.isAdmin, location.pathname]
+  );
 
   if (initialising) {
     return <LoadingSpinner message="Loading ZenRo..." />;
@@ -163,6 +244,10 @@ function App() {
           {loadError}
         </div>
       )}
+
+      <div aria-live="polite" className="sr-only">
+        {cartAnnouncement}
+      </div>
 
       <Routes>
         <Route path="/" element={<Home addToCart={addToCart} />} />
@@ -187,15 +272,8 @@ function App() {
 
         <Route
           path="/checkout"
-          element={
-            cart.length > 0 ? (
-              <Checkout cart={cart} clearCart={clearCart} />
-            ) : (
-              <Navigate to="/shop" replace />
-            )
-          }
+          element={<Checkout cart={cart} clearCart={clearCart} />}
         />
-
         <Route path="/order-success" element={<OrderSuccess />} />
         <Route
           path="/myorders"
@@ -213,15 +291,20 @@ function App() {
         <Route
           path="/admin"
           element={
-            <AdminRoute user={user}>
-              <AdminDashboard />
-            </AdminRoute>
+            <AdminGuard>
+              <AdminDashboard user={user} />
+            </AdminGuard>
           }
         />
         <Route path="*" element={<NotFound />} />
       </Routes>
 
       <Footer />
+      <WhatsappFab
+        phoneNumber="2349044592275"
+        presetMessage="Hi ZenRo team, I'd like to finalise my order."
+        hidden={hideWhatsappFab}
+      />
     </ErrorBoundary>
   );
 }

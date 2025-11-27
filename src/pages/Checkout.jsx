@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
-import PropTypes from "prop-types";
+import { useMemo, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import PropTypes from "prop-types";
 import "./Checkout.css";
 
 function Checkout({ cart, clearCart }) {
@@ -17,7 +17,8 @@ function Checkout({ cart, clearCart }) {
     deliveryNote: "",
     paymentMethod: "card",
   });
-  const [submitting, setSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [checkoutError, setCheckoutError] = useState("");
   const [errors, setErrors] = useState({});
   const [validationModal, setValidationModal] = useState({
     open: false,
@@ -91,79 +92,82 @@ function Checkout({ cart, clearCart }) {
     }
   };
 
-  const formFields = [
-    {
-      label: "Full name",
-      name: "fullName",
-      placeholder: "Jane Doe",
-      autoComplete: "name",
-      required: true,
-      maxLength: 60,
-    },
-    {
-      label: "Email",
-      name: "email",
-      placeholder: "you@example.com",
-      type: "email",
-      autoComplete: "email",
-      required: true,
-      maxLength: 80,
-    },
-    {
-      label: "Phone number",
-      name: "phone",
-      placeholder: "+2348000000000",
-      inputMode: "tel",
-      autoComplete: "tel",
-      required: true,
-      maxLength: 16,
-      pattern: "\\+?[0-9]{7,15}",
-      title: "Enter 7–15 digits, optionally starting with +",
-    },
-    {
-      label: "Address line 1",
-      name: "addressLine1",
-      placeholder: "123 Zen Street, Apartment 4",
-      autoComplete: "address-line1",
-      required: true,
-      maxLength: 120,
-    },
-    {
-      label: "Address line 2",
-      name: "addressLine2",
-      placeholder: "Suite, unit, landmark (optional)",
-      autoComplete: "address-line2",
-      required: false,
-      maxLength: 120,
-    },
-    {
-      label: "City",
-      name: "city",
-      placeholder: "Lekki",
-      autoComplete: "address-level2",
-      required: true,
-      maxLength: 50,
-    },
-    {
-      label: "State/Region",
-      name: "state",
-      placeholder: "Lagos",
-      autoComplete: "address-level1",
-      required: true,
-      maxLength: 50,
-    },
-    {
-      label: "Postal code",
-      name: "postalCode",
-      placeholder: "101245",
-      inputMode: "numeric",
-      autoComplete: "postal-code",
-      required: true,
-      maxLength: 10,
-      pattern: "\\d{4,10}",
-      title: "Enter digits only",
-    },
-  ];
+  const formFields = useMemo(
+    () => [
+      {
+        label: "Full name",
+        name: "fullName",
+        placeholder: "Jane Doe",
+        autoComplete: "name",
+        required: true,
+        maxLength: 60,
+      },
+      {
+        label: "Email",
+        name: "email",
+        placeholder: "you@example.com",
+        type: "email",
+        autoComplete: "email",
+        required: true,
+        maxLength: 80,
+      },
+      {
+        label: "Phone number",
+        name: "phone",
+        placeholder: "+2348000000000",
+        inputMode: "tel",
+        autoComplete: "tel",
+        required: true,
+        maxLength: 16,
+        pattern: "\\+?[0-9]{7,15}",
+        title: "Enter 7–15 digits, optionally starting with +",
+      },
+      {
+        label: "Address line 1",
+        name: "addressLine1",
+        placeholder: "123 Zen Street, Apartment 4",
+        autoComplete: "address-line1",
+        required: true,
+        maxLength: 120,
+      },
+      {
+        label: "Address line 2",
+        name: "addressLine2",
+        placeholder: "Suite, unit, landmark (optional)",
+        autoComplete: "address-line2",
+        required: false,
+        maxLength: 120,
+      },
+      {
+        label: "City",
+        name: "city",
+        placeholder: "Lekki",
+        autoComplete: "address-level2",
+        required: true,
+        maxLength: 50,
+      },
+      {
+        label: "State/Region",
+        name: "state",
+        placeholder: "Lagos",
+        autoComplete: "address-level1",
+        required: true,
+        maxLength: 50,
+      },
+      {
+        label: "Postal code",
+        name: "postalCode",
+        placeholder: "101245",
+        inputMode: "numeric",
+        autoComplete: "postal-code",
+        required: true,
+        maxLength: 10,
+        pattern: "\\d{4,10}",
+        title: "Enter digits only",
+      },
+    ],
+    []
+  );
 
   const paymentOptions = [
     { label: "Card (Paystack/Flutterwave)", value: "card" },
@@ -171,7 +175,7 @@ function Checkout({ cart, clearCart }) {
     { label: "Cash on delivery", value: "cod" },
   ];
 
-  const validate = () => {
+  const validate = useCallback(() => {
     const nextErrors = {};
     const missingLabels = [];
 
@@ -221,30 +225,79 @@ function Checkout({ cart, clearCart }) {
 
     setValidationModal({ open: false, missing: [] });
     return true;
-  };
+  }, [form, formFields]);
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    if (!validate()) return;
+  const orderSummary = useMemo(
+    () =>
+      cart.map((item) => {
+        const price = Number(item.price) || 0;
+        const quantity = item.quantity || 0;
+        return {
+          id: item.id,
+          name: item.name,
+          size: item.size,
+          quantity,
+          price,
+          lineTotal: price * quantity,
+        };
+      }),
+    [cart]
+  );
 
-    setSubmitting(true);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 1200));
-      await clearCart();
-      navigate("/order-success", { state: { total: totals.total } });
-    } catch (error) {
-      console.error("Checkout failed:", error);
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  const handleCheckout = useCallback(
+    async (event) => {
+      event?.preventDefault();
+      if (!cart.length || isSubmitting) return;
+
+      if (!validate()) {
+        return;
+      }
+
+      setCheckoutError("");
+      setIsSubmitting(true);
+
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 1200));
+
+        const summarySnapshot = orderSummary.map((item) => ({ ...item }));
+        const totalAmount = summarySnapshot.reduce(
+          (sum, item) => sum + item.lineTotal,
+          0
+        );
+
+        const fallbackOrderId =
+          typeof crypto !== "undefined" && crypto.randomUUID
+            ? crypto.randomUUID()
+            : `ZENRO-${Date.now()}`;
+
+        const response = null; // replace with real gateway response when integrated
+        const createdOrderId = response?.id ?? fallbackOrderId;
+
+        navigate("/order-success", {
+          state: {
+            total: totalAmount,
+            items: summarySnapshot,
+            orderId: createdOrderId,
+          },
+        });
+
+        await clearCart();
+      } catch (error) {
+        console.error("Checkout failed:", error);
+        setCheckoutError("We couldn’t finalise your order. Please try again.");
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [cart.length, isSubmitting, validate, orderSummary, navigate, clearCart]
+  );
 
   return (
     <div className="checkout-page container py-5">
       <h2 className="mb-4">Checkout</h2>
 
       <div className="checkout-layout">
-        <form className="checkout-form" onSubmit={handleSubmit} noValidate>
+        <form className="checkout-form" onSubmit={handleCheckout} noValidate>
           <section>
             <h3>Shipping details</h3>
             <div className="form-grid">
@@ -322,9 +375,14 @@ function Checkout({ cart, clearCart }) {
             )}
           </section>
 
-          <button className="place-order-btn" type="submit" disabled={submitting}>
-            {submitting ? "Processing..." : "Place order"}
+          <button
+            type="submit"
+            className="btn btn-dark w-100"
+            disabled={!cart.length || isSubmitting}
+          >
+            {isSubmitting ? "Processing…" : "Place order"}
           </button>
+          {checkoutError && <p className="text-danger mt-3">{checkoutError}</p>}
         </form>
 
         <aside className="order-summary">
