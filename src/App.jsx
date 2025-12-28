@@ -1,5 +1,5 @@
-import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 
@@ -25,6 +25,7 @@ import Unauthorized from "./pages/Unauthorized";
 import NotFound from "./pages/NotFound";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminRoute from "./pages/AdminRoute";
+import WhiteTee from "./assets/white-tee.png";
 
 const ADMIN_EMAILS = (import.meta.env.VITE_ADMIN_EMAILS ?? "")
   .split(",")
@@ -32,7 +33,6 @@ const ADMIN_EMAILS = (import.meta.env.VITE_ADMIN_EMAILS ?? "")
   .filter(Boolean);
 
 function App() {
-  const navigate = useNavigate();
   const location = useLocation();
   const [cart, setCart] = useState([]);
   const [user, setUser] = useState(() => {
@@ -47,7 +47,7 @@ function App() {
   const [initialising, setInitialising] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [loadError, setLoadError] = useState(null);
-  const [cartAnnouncement, setCartAnnouncement] = useState("");
+  const [cartAnnouncement] = useState(null);
 
   // Derive cart count cheaply
   const cartCount = useMemo(
@@ -125,42 +125,60 @@ function App() {
   }, [cart, user, initialising]);
 
   // --- CART HELPERS ---
-  const addToCart = useCallback(
-    (product) => {
-      if (!user) {
-        navigate("/login");
-        return;
+  const addToCart = useCallback((incomingProduct) => {
+    setCart((prevCart) => {
+      const normalized = {
+        ...incomingProduct,
+        id: incomingProduct.id,
+        size: incomingProduct.size ?? incomingProduct.selectedSize ?? null,
+        quantity: Number(incomingProduct.quantity) || 1,
+        price: Number(incomingProduct.price) || 0,
+        image: (() => {
+          const candidates = [
+            incomingProduct.image,
+            incomingProduct.images?.front,
+            incomingProduct.imageUrl,
+            incomingProduct.frontImageUrl,
+            incomingProduct.frontImage,
+          ];
+          for (const option of candidates) {
+            if (typeof option === "string" && option.trim()) {
+              return option.trim();
+            }
+          }
+          return WhiteTee;
+        })(),
+      };
+
+      const existingIndex = prevCart.findIndex(
+        (item) => item.id === normalized.id && item.size === normalized.size
+      );
+
+      if (existingIndex >= 0) {
+        const updated = [...prevCart];
+        updated[existingIndex] = {
+          ...updated[existingIndex],
+          quantity: updated[existingIndex].quantity + normalized.quantity,
+        };
+        return updated;
       }
 
-      const { id, size, quantity = 1 } = product;
-      if (!id) return;
+      return [...prevCart, normalized];
+    });
+  }, []);
 
-      setCart((prev) => {
-        const existingIndex = prev.findIndex(
-          (item) => item.id === id && item.size === size
-        );
-
-        if (existingIndex >= 0) {
-          const updated = [...prev];
-          updated[existingIndex] = {
-            ...updated[existingIndex],
-            quantity: updated[existingIndex].quantity + quantity,
-          };
-          return updated;
+  const removeFromCart = useCallback((itemOrId) => {
+    setCart((prevCart) =>
+      prevCart.filter((cartItem) => {
+        if (typeof itemOrId === "object" && itemOrId !== null) {
+          if (itemOrId.size) {
+            return !(cartItem.id === itemOrId.id && cartItem.size === itemOrId.size);
+          }
+          return cartItem.id !== itemOrId.id;
         }
-
-        return [...prev, { ...product, quantity }];
-      });
-
-      setCartAnnouncement(
-        `${product.name} added to cart. Quantity: ${quantity + (existing?.quantity ?? 0)}`
-      );
-    },
-    [navigate, user]
-  );
-
-  const removeFromCart = useCallback((id, size) => {
-    setCart((prev) => prev.filter((item) => !(item.id === id && item.size === size)));
+        return cartItem.id !== itemOrId;
+      })
+    );
   }, []);
 
   const updateQuantity = useCallback((id, size, nextQuantity) => {
@@ -277,7 +295,7 @@ function App() {
         <Route path="/order-success" element={<OrderSuccess />} />
         <Route
           path="/myorders"
-          element={user ? <MyOrders /> : <Navigate to="/login" replace />}
+          element={user ? <MyOrders user={user} /> : <Navigate to="/login" replace />}
         />
         <Route
           path="/login"

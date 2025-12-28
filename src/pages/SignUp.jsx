@@ -1,167 +1,85 @@
 import { useState } from "react";
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { auth } from "../Firebase";
-import "./SignUp.css";
+import "./Auth.css";
 
 function SignUp() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPwd, setConfirmPwd] = useState("");
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [validationModal, setValidationModal] = useState({
-    open: false,
-    missing: [],
+  const [form, setForm] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
   });
 
-  const handleSignUp = async (e) => {
-    e.preventDefault();
-    setError("");
-    setSuccess("");
+  const handleChange = ({ target: { name, value } }) =>
+    setForm((prev) => ({ ...prev, [name]: value }));
 
-    if (password !== confirmPwd) {
-      setError("Passwords do not match.");
-      return;
-    }
-
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-
-      // Save display name to Firebase profile
-      if (name.trim()) {
-        await updateProfile(user, { displayName: name });
-      }
-
-      setSuccess(`Welcome ${name || "to ZenRo Family"}!`);
-      setTimeout(() => (window.location.href = "/"), 2000);
-    } catch (err) {
-      if (err.code === "auth/email-already-in-use") {
-        setError("Email already in use. Try logging in instead.");
-      } else {
-        setError("Failed to create account. Try again.");
-      }
-    }
-  };
-
-  const handleChange = (event) => {
-    setForm((prev) => ({ ...prev, [event.target.name]: event.target.value }));
-    setError("");
-    if (validationModal.open) {
-      setValidationModal({ open: false, missing: [] });
-    }
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    console.log("Registration attempt", form);
   };
 
   return (
-    <div className="signup-page page-fade-in">
-      <div className="signup-card">
-        <h1>Create your ZenRo account</h1>
-        <p className="signup-subtitle">Join the community and stay ahead on every drop.</p>
-        {error && <div className="signup-alert">{error}</div>}
-        <form className="signup-form" onSubmit={handleSignUp}>
-          <label className="field-label">
-            <span className="label-title">
-              Display name <span className="required-indicator">*</span>
-            </span>
-            <input
-              name="displayName"
-              placeholder="Zen Master"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              autoComplete="name"
-            />
-          </label>
-          <label className="field-label">
-            <span className="label-title">
-              Email address <span className="required-indicator">*</span>
-            </span>
-            <input
-              type="email"
-              name="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              autoComplete="email"
-            />
-          </label>
-          <label className="field-label">
-            <span className="label-title">
-              Password <span className="required-indicator">*</span>
-            </span>
-            <div className="input-with-toggle">
-              <input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="new-password"
-              />
-              <button
-                type="button"
-                className="toggle-visibility"
-                onClick={() => setShowPassword((prev) => !prev)}
-                aria-label={showPassword ? "Hide password" : "Show password"}
-              >
-                {showPassword ? "Hide" : "Show"}
-              </button>
-            </div>
-          </label>
+    <div className="auth-page">
+      <form className="auth-card" onSubmit={handleSubmit}>
+        <h1>Create an account</h1>
 
-          <label className="field-label">
-            <span className="label-title">
-              Confirm password <span className="required-indicator">*</span>
-            </span>
-            <div className="input-with-toggle">
-              <input
-                type={showConfirm ? "text" : "password"}
-                name="confirmPassword"
-                placeholder="Repeat password"
-                value={confirmPwd}
-                onChange={(e) => setConfirmPwd(e.target.value)}
-              />
-              <button
-                type="button"
-                className="toggle-visibility"
-                onClick={() => setShowConfirm((prev) => !prev)}
-                aria-label={showConfirm ? "Hide password" : "Show password"}
-              >
-                {showConfirm ? "Hide" : "Show"}
-              </button>
-            </div>
-          </label>
-          <button className="signup-btn" type="submit">
-            Sign up
-          </button>
-        </form>
-        <p className="signup-switch">
-          Already have an account? <a href="/login">Sign in</a>
-        </p>
-      </div>
+        <label className="auth-label">
+          <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+            First name <span style={{ color: 'red', marginLeft: 7 }}>*</span>
+          </span>
+          <input
+            name="firstName"
+            value={form.firstName}
+            onChange={handleChange}
+            required
+          />
+        </label>
 
-      {validationModal.open && (
-        <div className="form-modal-backdrop" role="alertdialog" aria-modal="true">
-          <div className="form-modal">
-            <h2>Action required</h2>
-            <p>Please fill the fields below:</p>
-            <ul className="form-modal-list">
-              {validationModal.missing.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-            <button
-              type="button"
-              className="form-modal-btn"
-              onClick={() => setValidationModal({ open: false, missing: [] })}
-            >
-              Close
-            </button>
-          </div>
+        <label className="auth-label">
+           <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+           Last name  <span style={{ color: 'red', marginLeft: 7 }}> *</span>
+          </span>
+          <input
+            name="lastName"
+            value={form.lastName}
+            onChange={handleChange}
+            required
+          />
+        </label>
+
+        <label className="auth-label">
+           <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+           Email  <span style={{ color: 'red', marginLeft: 7 }}> *</span>
+          </span>
+          <input
+            type="email"
+            name="email"
+            value={form.email}
+            onChange={handleChange}
+            required
+          />
+        </label>
+
+        <label className="auth-label">
+            <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+            Password  <span style={{ color: 'red', marginLeft: 7 }}> *</span>
+          </span>
+          <input
+            type="password"
+            name="password"
+            value={form.password}
+            onChange={handleChange}
+            minLength={6}
+            required
+          />
+        </label>
+
+        <button type="submit" className="btn btn-dark w-100 mt-3">
+          Sign up
+        </button>
+        <div className="signup-links" style={{display: 'flex', justifyContent: 'center', marginTop: '1rem'}}>
+          <span style={{fontSize: '1rem'}}>Already have an account? <a href="/login" style={{color: '#007bff', textDecoration: 'underline'}}>Sign in</a></span>
         </div>
-      )}
+      </form>
     </div>
   );
 }

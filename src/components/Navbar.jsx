@@ -8,7 +8,7 @@ import { FaShoppingCart, FaTools, FaHome, FaStore, FaWhatsapp, FaInfoCircle, FaU
 import { auth } from "../Firebase";
 import "./styles/Navbar.css";
 
-function Navbar({ cartCount, syncing, user, clearCart }) {
+function Navbar({ cartCount, syncing, user }) {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -172,7 +172,6 @@ Navbar.propTypes = {
   cartCount: PropTypes.number.isRequired,
   syncing: PropTypes.bool,
   user: PropTypes.object,
-  clearCart: PropTypes.func.isRequired,
 };
 
 Navbar.defaultProps = {

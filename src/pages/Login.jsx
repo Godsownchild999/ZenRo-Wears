@@ -1,147 +1,106 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom"; // import Link
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "../Firebase";
-import "./Login.css";
+import "./Auth.css";
 
 function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [form, setForm] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [validationModal, setValidationModal] = useState({
-    open: false,
-    missing: [],
-  });
-  const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
+  const handleChange = ({ target: { name, value } }) =>
+    setForm((prev) => ({ ...prev, [name]: value }));
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     setError("");
-    setLoading(true);
-
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      navigate("/");
+      await signInWithEmailAndPassword(auth, form.email, form.password);
+      // Optionally redirect or show success
     } catch (err) {
-      console.error("❌ Login error:", err.message);
-      setError("Incorrect email or password.");
-    } finally {
-      setLoading(false);
+      setError(err.message);
     }
   };
 
-  const handleChange = (event) => {
-    setForm((prev) => ({ ...prev, [event.target.name]: event.target.value }));
+  const handleForgotPassword = async () => {
     setError("");
-    if (validationModal.open) {
-      setValidationModal({ open: false, missing: [] });
-    }
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const missing = [];
-    if (!form.email.trim()) missing.push("Email address");
-    if (!form.password.trim()) missing.push("Password");
-
-    if (missing.length) {
-      setValidationModal({ open: true, missing });
+    if (!form.email) {
+      setError("Enter your email above first.");
       return;
     }
-
-    // ...existing login logic
+    try {
+      await sendPasswordResetEmail(auth, form.email);
+      setResetSent(true);
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   return (
-    <div className="login-page page-fade-in">
-      <div className="login-card">
-        <h1>Welcome back</h1>
-        <p className="login-subtitle">Sign in to keep styling with ZenRo.</p>
-        {error && <div className="login-alert">{error}</div>}
-        <form className="login-form" onSubmit={handleLogin}>
-          <label className="field-label">
-            <span className="label-title">
-              Email address <span className="required-indicator">*</span>
-            </span>
-            <input
-              type="email"
-              name="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              autoComplete="email"
-              required
-            />
-          </label>
-          <label className="field-label">
-            <span className="label-title">
-              Password <span className="required-indicator">*</span>
-            </span>
-            <div className="input-with-toggle">
-              <input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="current-password"
-              />
-              <button
-                type="button"
-                className="toggle-visibility"
-                onClick={() => setShowPassword((prev) => !prev)}
-                aria-label={showPassword ? "Hide password" : "Show password"}
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                  className="eye-icon"
-                >
-                  {showPassword ? (
-                    <>
-                      <path d="M2.1 3.5 3.5 2.1 21.9 20.5 20.5 21.9 16.7 18.1A9.83 9.83 0 0 1 12 19.5C6.6 19.5 2.14 15.64 0.5 12 1.34 10.15 3.47 7.45 6.6 5.9L2.1 3.5Z" />
-                      <path d="M9.8 7.2 7.9 5.3A9.86 9.86 0 0 1 12 4.5c5.4 0 9.86 3.86 11.5 7.5-.6 1.27-1.68 2.85-3.15 4.25l-1.9-1.9A5 5 0 0 0 9.8 7.2Z" />
-                    </>
-                  ) : (
-                    <>
-                      <path d="M12 19.5C6.6 19.5 2.14 15.64 0.5 12 2.14 8.36 6.6 4.5 12 4.5s9.86 3.86 11.5 7.5c-1.64 3.64-6.1 7.5-11.5 7.5Zm0-12a4.5 4.5 0 1 0 4.5 4.5A4.51 4.51 0 0 0 12 7.5Z" />
-                    </>
-                  )}
-                </svg>
-              </button>
-            </div>
-          </label>
-          <button className="login-btn" type="submit" disabled={loading}>
-            {loading ? "Signing in..." : "Sign in"}
-          </button>
-        </form>
-        <p className="login-switch">
-          New to ZenRo? <Link to="/signup">Create an account</Link>
-        </p>
-      </div>
+    <div className="auth-page" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', background: '#f7f8fa' }}>
+      <form className="auth-card" onSubmit={handleSubmit} style={{ maxWidth: 400, width: '100%', background: '#fff', borderRadius: 24, boxShadow: '0 4px 24px rgba(0,0,0,0.07)', padding: '2.5rem 2rem', margin: '2rem 0' }}>
+        <h1 style={{ fontWeight: 700, fontSize: '2rem', marginBottom: '1.5rem', textAlign: 'center' }}>Welcome back</h1>
 
-      {validationModal.open && (
-        <div className="form-modal-backdrop" role="alertdialog" aria-modal="true">
-          <div className="form-modal">
-            <h2>Missing information</h2>
-            <p>Please fill the fields below:</p>
-            <ul className="form-modal-list">
-              {validationModal.missing.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-            <button
-              type="button"
-              className="form-modal-btn"
-              onClick={() => setValidationModal({ open: false, missing: [] })}
+        {error && <div className="alert alert-danger" style={{ marginBottom: 12 }}>{error}</div>}
+        {resetSent && <div className="alert alert-success" style={{ marginBottom: 12 }}>Password reset email sent!</div>}
+
+        <div className="form-group" style={{ marginBottom: 20 }}>
+          <label htmlFor="email" style={{ fontWeight: 500, marginBottom: 6, display: 'block' }}>Email address <span style={{ color: 'red' }}>*</span></label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            value={form.email}
+            onChange={handleChange}
+            required
+            placeholder="you@example.com"
+            style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: 8, border: '1px solid #ddd', fontSize: '1rem' }}
+          />
+        </div>
+
+        <div className="form-group" style={{ marginBottom: 20 }}>
+          <label htmlFor="password" style={{ fontWeight: 500, marginBottom: 6, display: 'block' }}>Password <span style={{ color: 'red' }}>*</span></label>
+          <div style={{ position: 'relative' }}>
+            <input
+              type={showPassword ? "text" : "password"}
+              id="password"
+              name="password"
+              value={form.password}
+              onChange={handleChange}
+              required
+              placeholder="Password"
+              style={{ width: '100%', padding: '0.75rem 2.5rem 0.75rem 1rem', borderRadius: 8, border: '1px solid #ddd', fontSize: '1rem' }}
+            />
+            <span
+              onClick={() => setShowPassword((v) => !v)}
+              style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', cursor: 'pointer', color: '#888', fontSize: 20 }}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              tabIndex={0}
             >
-              Review form
-            </button>
+              {showPassword ? <FaEyeSlash /> : <FaEye />}
+            </span>
           </div>
         </div>
-      )}
+
+        <button type="submit" className="login-btn" style={{ width: '100%', background: '#111', color: '#fff', border: 'none', borderRadius: 8, padding: '0.9rem', fontWeight: 600, fontSize: '1.1rem', marginBottom: 16, marginTop: 8, letterSpacing: 1 }}>SIGN IN</button>
+
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, marginTop: 8 }}>
+          <button type="button" onClick={handleForgotPassword} style={{ background: 'none', border: 'none', color: '#007bff', textDecoration: 'underline', cursor: 'pointer', fontSize: '1rem', fontWeight: 500, padding: 0, marginBottom: 2, transition: 'color 0.2s' }}
+            onMouseOver={e => e.target.style.color = '#0056b3'}
+            onMouseOut={e => e.target.style.color = '#007bff'}
+          >
+            Forgot password?
+          </button>
+          <span style={{ fontSize: '1rem', color: '#333' }}>New to ZenRo? <a
+            href="/signup"
+            style={{ color: '#007bff', textDecoration: 'underline', fontWeight: 600, transition: 'color 0.2s' }}
+            onMouseOver={e => (e.target.style.color = '#0056b3')}
+            onMouseOut={e => (e.target.style.color = '#007bff')}
+          >Create an account</a></span>
+        </div>
+      </form>
     </div>
   );
 }

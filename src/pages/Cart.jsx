@@ -38,7 +38,7 @@ function Cart({ cart, removeFromCart }) {
               <p>Price: {formatCurrency(item.price)}</p>
             </div>
             <button
-              onClick={() => removeFromCart(item.id)}
+              onClick={() => removeFromCart(item)}
               className="remove-btn"
             >
               Remove
@@ -60,11 +60,12 @@ function Cart({ cart, removeFromCart }) {
 Cart.propTypes = {
   cart: PropTypes.arrayOf(
     PropTypes.shape({
-      id: PropTypes.string.isRequired,
+      id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
       name: PropTypes.string.isRequired,
-      price: PropTypes.number.isRequired,
+      price: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
       quantity: PropTypes.number.isRequired,
       image: PropTypes.string.isRequired,
+      size: PropTypes.string,
     })
   ).isRequired,
   removeFromCart: PropTypes.func.isRequired,

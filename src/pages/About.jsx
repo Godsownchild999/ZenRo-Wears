@@ -8,7 +8,8 @@ function About() {
     <div className="about-page page-fade-in">
       {/* Hero / Intro Section */}
       <section className="about-hero">
-        <h1 className="fw-bold display-5">About ZenRo Wears</h1>
+        <h1 className="fw-bold display-5
+      ">About ZenRo Wears</h1>
         <p className="lead mt-3">
           “Simplicity is the ultimate sophistication.” — Leonardo da Vinci
         </p>

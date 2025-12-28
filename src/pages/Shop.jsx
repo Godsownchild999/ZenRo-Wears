@@ -1,11 +1,14 @@
-import { useMemo, useState, useEffect } from "react";
+import PropTypes from "prop-types";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import ProductCard from "../components/ProductCard";
 import ProductQuickView from "../components/ProductQuickView";
 import ProductSkeleton from "../components/ProductSkeleton";
-import Toast from "../components/Toast";
 import "./Shop.css";
+import { collection, onSnapshot } from "firebase/firestore";
+import { db } from "../firebase/config"; // Adjust the import based on your file structure
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { auth } from "../Firebase"; // adjust path if needed
 
-// image imports
 import WhiteTee from "../assets/white-tee.png";
 import Hoodie from "../assets/hoodie.png";
 import Joggers from "../assets/joggers.png";
@@ -34,7 +37,29 @@ import ZenClassicTee from "../assets/zen-classic-tee.png";
 import Cap from "../assets/cap.png";
 import leatherPremiumJacket from "../assets/leather-premium-jacket.png";
 
-const rawProducts = [
+const priceRanges = [
+  { label: "All", test: () => true },
+  { label: "Under ₦40,000", test: (price) => price < 40000 },
+  {
+    label: "₦40,000 – ₦70,000",
+    test: (price) => price >= 40000 && price <= 70000,
+  },
+  { label: "Above ₦70,000", test: (price) => price > 70000 },
+];
+
+const categories = [
+  "All",
+  "T-Shirts",
+  "Hoodies",
+  "Jackets",
+  "Trousers",
+  "Joggers",
+  "Shirts",
+  "Sportswear",
+  "Accessories",
+];
+
+const fallbackProducts = [
   {
     id: 1,
     name: "ZenRo Classic Tee",
@@ -307,116 +332,268 @@ const rawProducts = [
   },
 ];
 
-const categories = [
-  "All",
-  "T-Shirts",
-  "Hoodies",
-  "Jackets",
-  "Trousers",
-  "Joggers",
-  "Shirts",
-  "Sportswear",
-  "Accessories",
-];
+function FilterPanel({
+  open,
+  onClose,
+  onApply,
+  onReset,
+  selectedCategory,
+  onCategoryChange,
+  selectedPrice,
+  onPriceChange,
+}) {
+  if (!open) return null;
 
-const priceRanges = [
-  { label: "All", min: 0, max: Infinity },
-  { label: "Under ₦40,000", min: 0, max: 40000 },
-  { label: "₦40,000 - ₦70,000", min: 40000, max: 70000 },
-  { label: "Above ₦70,000", min: 70000, max: Infinity },
-];
+  return (
+    <div className="filter-overlay" role="dialog" aria-modal="true">
+      <div className="filter-panel">
+        <header className="filter-panel__header">
+          <h3>Filter &amp; sort</h3>
+          <button
+            type="button"
+            className="filter-panel__close"
+            onClick={onClose}
+            aria-label="Close filters"
+          >
+            ×
+          </button>
+        </header>
+
+        <section className="filter-panel__section">
+          <h4>Categories</h4>
+          <div className="filter-chip-grid">
+            {categories.map((category) => (
+              <button
+                key={category}
+                type="button"
+                className={`filter-chip ${
+                  selectedCategory === category ? "active" : ""
+                }`}
+                onClick={() => onCategoryChange(category)}
+                aria-pressed={selectedCategory === category}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <section className="filter-panel__section">
+          <h4>Price range</h4>
+          <div className="filter-chip-grid">
+            {priceRanges.map((range) => (
+              <button
+                key={range.label}
+                type="button"
+                className={`filter-chip ${
+                  selectedPrice === range.label ? "active" : ""
+                }`}
+                onClick={() => onPriceChange(range.label)}
+                aria-pressed={selectedPrice === range.label}
+              >
+                {range.label}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <footer className="filter-panel__footer">
+          <button type="button" className="btn btn-light" onClick={onReset}>
+            Reset
+          </button>
+          <button type="button" className="btn btn-dark" onClick={onApply}>
+            Apply filters
+          </button>
+        </footer>
+      </div>
+    </div>
+  );
+}
+
+FilterPanel.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  onApply: PropTypes.func.isRequired,
+  onReset: PropTypes.func.isRequired,
+  selectedCategory: PropTypes.string.isRequired,
+  onCategoryChange: PropTypes.func.isRequired,
+  selectedPrice: PropTypes.string.isRequired,
+  onPriceChange: PropTypes.func.isRequired,
+};
 
 function Shop({ addToCart }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [priceRange, setPriceRange] = useState("All");
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [toast, setToast] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [visibleCount, setVisibleCount] = useState(9);
+  const [quickViewProduct, setQuickViewProduct] = useState(null);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState(null);
+  const [liveProducts, setLiveProducts] = useState([]);
 
-  // mimic async fetching
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 700);
+    setLoading(true);
+    const timer = setTimeout(() => setLoading(false), 600);
     return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    const ref = collection(db, "products");
+    const unsubscribe = onSnapshot(
+      ref,
+      (snapshot) => {
+        const items = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        console.log("Products snapshot:", items);
+        setLiveProducts(items);
+        setLoading(false);
+      },
+      (err) => {
+        console.error("Products listener failed:", err);
+        setLoading(false);
+      }
+    );
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {
     setVisibleCount(9);
   }, [selectedCategory, priceRange, searchQuery]);
 
+  useEffect(() => {
+    if (!toast) return undefined;
+    const timer = setTimeout(() => setToast(null), 2400);
+    return () => clearTimeout(timer);
+  }, [toast]);
+
+  useEffect(() => {
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") {
+        if (quickViewProduct) setQuickViewProduct(null);
+        if (isFilterOpen) setIsFilterOpen(false);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [quickViewProduct, isFilterOpen]);
+
+  useEffect(() => {
+    const shouldLock = Boolean(quickViewProduct || isFilterOpen);
+    document.body.style.overflow = shouldLock ? "hidden" : "unset";
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [quickViewProduct, isFilterOpen]);
+
+  const productsSource = useMemo(() => {
+    if (!liveProducts.length) return fallbackProducts;
+
+    const buildKey = (item) => {
+      const base = item?.slug ?? item?.name ?? item?.id;
+      if (typeof base === "string" && base.trim()) return base.trim().toLowerCase();
+      if (typeof base === "number") return String(base);
+      return String(item?.id ?? item?.name ?? Math.random());
+    };
+
+    const merged = new Map();
+    fallbackProducts.forEach((product) => {
+      merged.set(buildKey(product), { ...product });
+    });
+    liveProducts.forEach((product) => {
+      const key = buildKey(product);
+      const existing = merged.get(key) ?? {};
+      merged.set(key, {
+        ...existing,
+        ...product,
+      });
+    });
+
+    return Array.from(merged.values());
+  }, [liveProducts]);
+
   const filteredProducts = useMemo(() => {
-    const activeRange = priceRanges.find((range) => range.label === priceRange) || priceRanges[0];
-    return rawProducts.filter((product) => {
+    const priceTest =
+      priceRanges.find((option) => option.label === priceRange)?.test ??
+      priceRanges[0].test;
+
+    return productsSource.filter((product) => {
+      const description = (product.description ?? "").toLowerCase();
+      const name = (product.name ?? "").toLowerCase();
       const matchesSearch =
-        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.description.toLowerCase().includes(searchQuery.toLowerCase());
+        !searchQuery ||
+        name.includes(searchQuery.toLowerCase()) ||
+        description.includes(searchQuery.toLowerCase());
+
       const matchesCategory =
         selectedCategory === "All" || product.category === selectedCategory;
-      const matchesPrice =
-        product.price >= activeRange.min && product.price <= activeRange.max;
+
+      const matchesPrice = priceTest(Number(product.price) || 0);
+
       return matchesSearch && matchesCategory && matchesPrice;
     });
-  }, [searchQuery, selectedCategory, priceRange]);
+  }, [productsSource, searchQuery, selectedCategory, priceRange]);
 
   const displayedProducts = filteredProducts.slice(0, visibleCount);
   const hasMore = visibleCount < filteredProducts.length;
 
   const handleProductSelect = (product) => {
     if (product.status === "available") {
-      setSelectedProduct(product);
+      setQuickViewProduct(product);
       return;
     }
 
     if (product.status === "coming-soon") {
       setToast({
-        type: "info",
-        message: "🔥 This product is coming soon! Stay tuned.",
+        tone: "info",
+        message: "🔥 This product is coming soon. Stay tuned!",
       });
-    } else if (product.status === "out-of-stock") {
+      return;
+    }
+
+    if (product.status === "out-of-stock") {
       setToast({
-        type: "error",
+        tone: "error",
         message: "😔 This product is currently out of stock.",
       });
     }
   };
 
-  const handleAddToCart = (productWithOptions) => {
-    addToCart(productWithOptions);
-    setSelectedProduct(null);
-    setToast({
-      type: "success",
-      message: `✅ ${productWithOptions.name} added to cart!`,
-    });
-  };
+  const handleQuickViewAdd = useCallback(
+    (productWithOptions) => {
+      addToCart(productWithOptions);
+      setQuickViewProduct(null);
+      setToast({
+        tone: "success",
+        message: `✅ ${productWithOptions.name} added to cart.`,
+      });
+    },
+    [addToCart]
+  );
 
   const handleLoadMore = () => {
     setVisibleCount((prev) => prev + 6);
   };
 
-  useEffect(() => {
-    const onKeyDown = (event) => {
-      if (event.key === "Escape") {
-        setSelectedProduct(null);
-      }
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
-
-  useEffect(() => {
-    document.body.style.overflow = selectedProduct ? "hidden" : "unset";
-    return () => {
-      document.body.style.overflow = "unset";
-    };
-  }, [selectedProduct]);
-
-  const handleCategorySelect = (category) => {
-    setSelectedCategory(category);
+  const handleResetFilters = () => {
+    setSelectedCategory("All");
+    setPriceRange("All");
   };
 
-  const handlePriceSelect = (rangeLabel) => {
-    setPriceRange(rangeLabel);
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    try {
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        form.email,
+        form.password
+      );
+      await updateProfile(userCredential.user, {
+        displayName: `${form.firstName} ${form.lastName}`,
+      });
+      // Optionally redirect or show success
+    } catch (error) {
+      alert("Sign up failed: " + error.message);
+    }
   };
 
   return (
@@ -425,100 +602,58 @@ function Shop({ addToCart }) {
         <header className="shop-header text-center">
           <h2 className="fw-bold mb-3">ZenRo Collections</h2>
           <p className="text-secondary">
-            Discover pieces that speak the language of balance, thought, and style.
+            Discover pieces that speak the language of balance, thought, and
+            style.
           </p>
-
-          <div className="filter-card">
-            <div className="filter-row">
-              <div className="search-bar">
-                <i className="fas fa-search" aria-hidden="true"></i>
-                <input
-                  type="search"
-                  aria-label="Search products"
-                  placeholder="Search products..."
-                  value={searchQuery}
-                  onChange={(event) => setSearchQuery(event.target.value)}
-                />
-              </div>
-            </div>
-
-            <div className="filter-group">
-              <span className="filter-label">Categories</span>
-              <div className="filter-chips">
-                {categories.map((category) => (
-                  <button
-                    key={category}
-                    type="button"
-                    className={`filter-chip ${
-                      selectedCategory === category ? "active" : ""
-                    }`}
-                    onClick={() => handleCategorySelect(category)}
-                    aria-pressed={selectedCategory === category}
-                  >
-                    {category}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="filter-group">
-              <span className="filter-label">Price range</span>
-              <div className="filter-chips">
-                {priceRanges.map((range) => (
-                  <button
-                    key={range.label}
-                    type="button"
-                    className={`filter-chip ${
-                      priceRange === range.label ? "active" : ""
-                    }`}
-                    onClick={() => handlePriceSelect(range.label)}
-                    aria-pressed={priceRange === range.label}
-                  >
-                    {range.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
         </header>
 
-        <section className="products-grid mt-5">
-          {loading
-            ? Array.from({ length: 8 }, (_, index) => (
-                <ProductSkeleton key={index} />
-              ))
-            : displayedProducts.length > 0
-            ? displayedProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  onSelect={() => handleProductSelect(product)}
-                />
-              ))
-            : (
-              <div className="no-results">
-                <i className="fas fa-search" aria-hidden="true"></i>
-                <p>No products found matching your criteria.</p>
-                <button
-                  className="btn btn-dark rounded-pill px-4"
-                  onClick={() => {
-                    setSearchQuery("");
-                    setSelectedCategory("All");
-                    setPriceRange("All");
-                  }}
-                >
-                  Clear Filters
-                </button>
-              </div>
-            )}
+        <div className="shop-controls">
+          <input
+            type="search"
+            aria-label="Search products"
+            placeholder="Search products…"
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+          />
+          <button
+            type="button"
+            className="filter-toggle"
+            onClick={() => setIsFilterOpen(true)}
+          >
+            <span aria-hidden="true">⚙️</span> Filter &amp; sort
+          </button>
+        </div>
 
-          {hasMore && (
-            <div className="text-center mt-4">
+        <section className="catalog-grid mt-5">
+          {loading ? (
+            Array.from({ length: 8 }, (_, index) => <ProductSkeleton key={index} />)
+          ) : displayedProducts.length ? (
+            displayedProducts.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onSelect={() => handleProductSelect(product)}
+              />
+            ))
+          ) : (
+            <div className="no-results">
+              <i className="fas fa-search" aria-hidden="true"></i>
+              <p>No products found matching your criteria.</p>
               <button
-                type="button"
-                className="btn btn-outline-dark load-more"
-                onClick={handleLoadMore}
+                className="btn btn-dark rounded-pill px-4"
+                onClick={() => {
+                  setSearchQuery("");
+                  handleResetFilters();
+                }}
               >
+                Clear filters
+              </button>
+            </div>
+          )}
+
+          {hasMore && !loading && (
+            <div className="text-center mt-4">
+              <button type="button" className="btn btn-outline-dark load-more" onClick={handleLoadMore}>
                 Load more
               </button>
             </div>
@@ -526,23 +661,42 @@ function Shop({ addToCart }) {
         </section>
       </div>
 
-      {selectedProduct && (
+      <FilterPanel
+        open={isFilterOpen}
+        onClose={() => setIsFilterOpen(false)}
+        onApply={() => setIsFilterOpen(false)}
+        onReset={() => {
+          handleResetFilters();
+          setSearchQuery("");
+        }}
+        selectedCategory={selectedCategory}
+        onCategoryChange={setSelectedCategory}
+        selectedPrice={priceRange}
+        onPriceChange={setPriceRange}
+      />
+
+      {quickViewProduct && (
         <ProductQuickView
-          product={selectedProduct}
-          onClose={() => setSelectedProduct(null)}
-          addToCart={handleAddToCart}
+          product={quickViewProduct}
+          onClose={() => setQuickViewProduct(null)}
+          addToCart={handleQuickViewAdd}
         />
       )}
 
       {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
+        <div
+          className={`shop-toast shop-toast--${toast.tone ?? "info"}`}
+          role="status"
+        >
+          {toast.message}
+        </div>
       )}
     </div>
   );
 }
+
+Shop.propTypes = {
+  addToCart: PropTypes.func.isRequired,
+};
 
 export default Shop;

@@ -1,87 +1,86 @@
-import { Navigate, useNavigate } from "react-router-dom";
+import { useCallback } from "react";
+import WhiteTee from "../assets/white-tee.png";
 import PropTypes from "prop-types";
 import "./ProductCard.css";
 
+const statusBadge = {
+  available: null,
+  "coming-soon": { label: "Coming soon", tone: "amber" },
+  "out-of-stock": { label: "Out of stock", tone: "scarlet" },
+};
+
+const placeholderImage = "";
+
+const chooseImage = (...candidates) => {
+  for (const candidate of candidates) {
+    if (typeof candidate === "string" && candidate.trim()) {
+      return candidate.trim();
+    }
+  }
+  return placeholderImage;
+};
 
 function ProductCard({ product, onSelect }) {
-  const { images, name, price, status, category, initial, selling, image, available, comingSoon, addToCart } = product;
-  const navigate = useNavigate();
+  const badge = statusBadge[product.status] ?? null;
 
+  // Defensive: ensure sizes is a non-empty array for quick view
+  const canQuickView = Array.isArray(product.sizes) && product.sizes.length > 0;
 
-  const renderStatusTag = () => {
-    if (status === "out-of-stock") {
-      return <span className="product-tag tag-out">Out of stock</span>;
-    }
-    if (status === "coming-soon") {
-      return <span className="product-tag tag-soon">Coming soon</span>;
-    }
-    return null;
-  };
-
-  const priceDisplay = (
-    <p>
-      <del>{initial ? initial.toLocaleString("en-NG", { style: "currency", currency: "NGN" }) : ""}</del> &nbsp;
-      <span>{selling ? selling.toLocaleString("en-NG", { style: "currency", currency: "NGN" }) : ""}</span>
-    </p>
-  );
-   const handleClick = () => {
-    if (comingSoon) {
-      navigate("/coming-soon");
-    } else if (available && typeof addToCart === "function") addToCart({ name, selling,image });
-   };
+  const handleImageError = useCallback((event) => {
+    // If no fallback, just hide the image
+    event.target.style.display = "none";
+  }, []);
 
   return (
-    <div
-      className={`product-card ${!available ? "out-of-stock" : ""} ${comingSoon ? "coming-soon" : ""}`}
-      onClick={onSelect}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          onSelect();
-        }
-      }}
-    >
-      <div className="product-image">
-        <img src={images.front} alt={name} loading="lazy" />
-        {renderStatusTag()}
+    <article className={`catalog-card catalog-card--${product.status ?? "available"}`}>
+      <button type="button" className="catalog-media" onClick={canQuickView ? onSelect : undefined} aria-label={`View ${product.name}`} disabled={!canQuickView}>
+        <img
+          src={chooseImage(
+            product.images?.front,
+            product.image,
+            product.imageUrl,
+            product.frontImageUrl,
+            product.frontImage
+          )}
+          alt={product.name}
+          loading="lazy"
+          onError={handleImageError}
+        />
+        {badge && (
+          <span className={`catalog-badge catalog-badge--${badge.tone}`}>
+            {badge.label}
+          </span>
+        )}
+      </button>
+
+      <div className="catalog-body">
+        <p className="catalog-category">{product.category}</p>
+        <h3>{product.name}</h3>
+        <p className="catalog-price">
+          ₦{Number(product.price || 0).toLocaleString("en-NG")}
+        </p>
       </div>
 
-      <div className="product-body">
-        <span className="product-category">{category}</span>
-        <h3 className="product-name">{name || "Product Name"}</h3>
-        <p className="product-price">₦{Number(price || 0).toLocaleString()}</p>
-        {priceDisplay}
-      </div>
-
-      <div className="product-hover">
-        <button
-          className="view-details-btn"
-          type="button"
-          onClick={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            onSelect();
-          }}
-        >
+      <div className="catalog-footer">
+        <button type="button" className="catalog-quickview" onClick={canQuickView ? onSelect : undefined} disabled={!canQuickView}>
           Quick view
         </button>
       </div>
-    </div>
+      {!canQuickView && (
+        <div style={{ color: '#c00', fontSize: '0.9em', marginTop: 4 }}>Missing sizes</div>
+      )}
+    </article>
   );
 }
 
 ProductCard.propTypes = {
   product: PropTypes.shape({
-    id: PropTypes.number.isRequired,
-    images: PropTypes.shape({
-      front: PropTypes.string.isRequired,
-      back: PropTypes.string,
-    }).isRequired,
     name: PropTypes.string.isRequired,
-    price: PropTypes.number.isRequired,
-    status: PropTypes.oneOf(["available", "coming-soon", "out-of-stock"]).isRequired,
     category: PropTypes.string.isRequired,
+    price: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
+    images: PropTypes.shape({ front: PropTypes.string }),
+    image: PropTypes.string,
+    status: PropTypes.string,
   }).isRequired,
   onSelect: PropTypes.func.isRequired,
 };

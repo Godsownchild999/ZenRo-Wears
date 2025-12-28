@@ -1,17 +1,15 @@
-import { useEffect, useMemo, useCallback } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useCallback } from "react";
+import { Link, useLocation } from "react-router-dom";
 import "./OrderSuccess.css";
 
 const WHATSAPP_NUMBER =
   import.meta.env.VITE_WHATSAPP_NUMBER ?? "2349044592275";
 
 function OrderSuccess() {
-  const navigate = useNavigate();
   const { state } = useLocation();
   const total = state?.total ?? 0;
 
-  const items = state?.items ?? [];
-  const orderId = state?.orderId ?? "";
+  const { orderId } = state ?? {};
 
   const safeOrderId =
     orderId ||
@@ -19,32 +17,29 @@ function OrderSuccess() {
       ? crypto.randomUUID()
       : `ZENRO-${Date.now()}`);
 
-  const orderMessage = useMemo(() => {
-    if (!items.length) {
-      return `Hello, I just placed an order (ref ${safeOrderId}) with total ₦${Number(
-        total || 0
-      ).toLocaleString()}.`;
-    }
-    const lines = items.map(
-      (item) =>
-        `• ${item.name}${item.size ? ` (size ${item.size})` : ""} × ${item.quantity} = ₦${Number(
-          item.lineTotal || 0
-        ).toLocaleString()}`
-    );
-    return [
-      "Hello ZenRo, I just placed an order.",
-      orderId ? `Order ID: ${safeOrderId}` : null,
-      ...lines,
-      `Total: ₦${Number(total || 0).toLocaleString()}`,
-    ]
-      .filter(Boolean)
-      .join("\n");
-  }, [items, total, safeOrderId]);
 
-  const whatsappUrl = useMemo(
-    () => `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(orderMessage)}`,
-    [orderMessage]
-  );
+  // Build detailed order message for WhatsApp
+  const items = state?.items || [];
+  let itemLines = items.map((item, idx) => {
+    let line = `${idx + 1}. ${item.name}`;
+    if (item.size) line += ` (Size: ${item.size})`;
+    if (item.quantity) line += ` x${item.quantity}`;
+    if (item.price) line += ` - ₦${Number(item.price).toLocaleString()}`;
+    if (item.image || (item.images && item.images.front)) {
+      const imgUrl = item.image || (item.images && item.images.front);
+      line += `\n   [Image] ${imgUrl}`;
+    }
+    return line;
+  }).join("\n");
+
+  const orderMessage =
+    `Hello, I just placed an order (ref ${safeOrderId}) with total ₦${Number(total || 0).toLocaleString()}\n` +
+    `\nOrder details:\n${itemLines}` +
+    (state?.customerName ? `\nName: ${state.customerName}` : "") +
+    (state?.customerPhone ? `\nPhone: ${state.customerPhone}` : "") +
+    (state?.customerEmail ? `\nEmail: ${state.customerEmail}` : "");
+
+  const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(orderMessage)}`;
 
   const handleWhatsappClick = useCallback(() => {
     window.open(whatsappUrl, "_blank", "noopener,noreferrer");
